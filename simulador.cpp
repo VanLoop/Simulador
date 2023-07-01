@@ -2,6 +2,7 @@
 #include <map>
 #include <sstream>
 #include <iterator>
+#include <fstream>
 
 std::map<std::string, int> memory;
 int acc;
@@ -266,13 +267,23 @@ void decrement(const std::string& address){
 }
 
 void showOperation(std::string& address){
-  
+  std::ofstream outputFile("output.txt");
+
+  if (outputFile.is_open()) {
   if(memory.find(address) != memory.end()){
+      outputFile << memory[address] <<std::endl;
       std::cout << memory[address] << std::endl;
+      outputFile.close();
+      
       }else if(address == "ACC"){
-  std::cout << acc << std::endl;
+        outputFile << acc << std::endl;
+        std::cout << acc << std::endl;
+	outputFile.close();
   } else {
     std::cout << "that address is not in memory";
+  }
+  } else {
+    std::cout << "Failed to create file." << std::endl;
   }
 }
 
@@ -301,13 +312,29 @@ int countTokens(const std::string& str){
   return std::distance(std::istream_iterator<std::string>(iss), std::istream_iterator<std::string>());
 }
 
+void removeNulls(std::string& line) {
+  std::string nullString = "NULL";
+  size_t pos = line.find(nullString);
+
+  while (pos != std::string::npos) {
+    line.erase(pos, nullString.length());
+    pos = line.find(nullString, pos);
+  }
+}
+
 
 int main() {
   std::string input;
+  std::string fileName;
   while (true) {
-    std::cout << "Enter a command: ";
-    std::getline(std::cin, input);
+    std::cout << "Enter a file name: ";
+    std::getline(std::cin, fileName);
 
+    std::ifstream file(fileName);
+    if(file.is_open()) {
+      while (std::getline(file,input)){
+	removeNulls(input);
+    
     if(input == "END") {
       break;
     }
@@ -429,8 +456,17 @@ int main() {
 	  continue;
 	}
 	store(address);
-      }
-
-
-    } 
+    } else {
+      std::cout << "invalid command" << std::endl;
+      continue;
     }
+
+
+      }
+      file.close();
+    } else{
+      std::cout << "Failed to open file." << std::endl;
+    }
+
+  }
+}
